@@ -30,6 +30,9 @@ def draw_text(msg: list):
         WIN.blit(game_text_disp, (50, y_position)) 
     pygame.display.update()
 
+def draw_matched_text():
+    pass
+
 def wrap_game_text(game_text: str) -> None:
     font_height = FONT_MAIN.get_height()
     line_spacing = 2
@@ -63,6 +66,7 @@ def get_game_text():
 def main():
     clock = pygame.time.Clock()
     
+    input_text = ''
     game_text: str = get_game_text()
     game_text_line_list: list = wrap_game_text(game_text)
     
@@ -72,6 +76,13 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    input_text = ''
+                elif event.key == pygame.K_BACKSPACE:
+                    input_text = input_text[:-1]
+                else:
+                    input_text += event.unicode
         
         draw_text(game_text_line_list)
         
