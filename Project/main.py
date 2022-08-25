@@ -19,21 +19,32 @@ FONT_MAIN = pygame.font.SysFont('courier', 22)
 # Misc
 FPS = 60
 
-def draw_window():
+def draw_window() -> None:
     WIN.fill(WHITE)
     pygame.display.update()
 
-def draw_text(msg: list):
+def draw_text(msg: list, input_text: str) -> None:
     WIN.fill(WHITE)
     for line, y_position in msg:
+        comparison_result = get_matched_text(line, input_text)
         game_text_disp = FONT_MAIN.render(line, 1, BLACK)
         WIN.blit(game_text_disp, (50, y_position)) 
     pygame.display.update()
 
-def draw_matched_text():
-    pass
+def get_matched_text(current_line: str,current_input: str):
+    matched_text = ''
+    unmatched_text = ''
 
-def wrap_game_text(game_text: str) -> None:
+    if len(current_input) != 0:
+        for i, char in enumerate(current_input):
+            if char == current_line[i]:
+                matched_text += char
+            else:
+                unmatched_text = current_input[i:]
+                break
+    return(matched_text, unmatched_text)
+
+def wrap_game_text(game_text: str) -> list[str]:
     font_height = FONT_MAIN.get_height()
     line_spacing = 2
     line_y = 0
@@ -60,10 +71,10 @@ def wrap_game_text(game_text: str) -> None:
 
     return game_text_line_list
 
-def get_game_text():
+def get_game_text() -> str:
     return pyjokes.get_joke()
 
-def main():
+def main() -> None:
     clock = pygame.time.Clock()
     
     input_text = ''
