@@ -14,35 +14,41 @@ GREEN = (0, 255, 0)
 RED = (255, 0, 0,)
 
 # Fonts
-FONT_MAIN = pygame.font.SysFont('courier', 22)
+FONT_MAIN = pygame.font.SysFont('courier', 32, True)
 
 # Misc
 FPS = 60
 
-def draw_window() -> None:
-    WIN.fill(WHITE)
-    pygame.display.update()
+def draw_text(txt: str, txt_colour: tuple, coords: tuple ) -> None:
+    txt_to_display = FONT_MAIN.render(txt, 1, txt_colour)
+    WIN.blit(txt_to_display, coords)
 
-def draw_text(msg: list, input_text: str) -> None:
+def draw_window(msg: list, input_text: str) -> None:
     WIN.fill(WHITE)
     for line, y_position in msg:
-        comparison_result = get_matched_text(line, input_text)
-        game_text_disp = FONT_MAIN.render(line, 1, BLACK)
-        WIN.blit(game_text_disp, (50, y_position)) 
+        matched_text, incorrect_text = get_matched_text(line, input_text)
+        remaining_text = line[len(matched_text) + len(incorrect_text):]
+        
+        draw_text(matched_text, GREEN, (50, y_position))
+        draw_text(incorrect_text, RED, (50 + FONT_MAIN.size(matched_text)[0], y_position))
+        draw_text(remaining_text, BLACK, (50 + FONT_MAIN.size(matched_text)[0] 
+                                    + FONT_MAIN.size(incorrect_text)[0], y_position))
     pygame.display.update()
 
-def get_matched_text(current_line: str,current_input: str):
+def get_matched_text(current_line: str,current_input: str) -> tuple:
     matched_text = ''
-    unmatched_text = ''
+    incorrect_text = ''
 
-    if len(current_input) != 0:
-        for i, char in enumerate(current_input):
-            if char == current_line[i]:
-                matched_text += char
-            else:
-                unmatched_text = current_input[i:]
+    if len(current_input) != 0: 
+        for i, char in enumerate(current_input): 
+            if char != current_line[i]:
+                matched_text = current_input[:i]
+                incorrect_text = current_input[i:]
                 break
-    return(matched_text, unmatched_text)
+        else:
+            matched_text = current_input
+                
+    return(matched_text, incorrect_text)
 
 def wrap_game_text(game_text: str) -> list[str]:
     font_height = FONT_MAIN.get_height()
@@ -95,7 +101,7 @@ def main() -> None:
                 else:
                     input_text += event.unicode
         
-        draw_text(game_text_line_list)
+        draw_window(game_text_line_list, input_text)
         
     pygame.quit()
 
