@@ -24,38 +24,38 @@ def draw_window():
     pygame.display.update()
 
 def draw_text(msg: list):
-    game_text_disp = FONT_MAIN.render(msg, 1, BLACK)
-    game_text_disp_rect = game_text_disp.get_rect(center = (WIDTH//2, 400))
-    WIN.blit(game_text_disp, game_text_disp_rect)
+    WIN.fill(WHITE)
+    for line, y_position in msg:
+        game_text_disp = FONT_MAIN.render(line, 1, BLACK)
+        WIN.blit(game_text_disp, (50, y_position)) 
     pygame.display.update()
 
 def wrap_game_text(game_text: str) -> None:
     font_height = FONT_MAIN.get_height()
-    line_spacing = 0
+    line_spacing = 2
     line_y = 0
+    game_text_line_list = []
 
     # loop until game_text is empty
     while game_text:
         i = 1
 
         # determine width of the line relative to the width of the window
-        while FONT_MAIN.size(game_text[:i])[0] < WIDTH - 50 and i < len(game_text):
+        while FONT_MAIN.size(game_text[:i])[0] < WIDTH - 100 and i < len(game_text):
             i += 1
 
         # adjust index to find last space before end of line to avoid word chopping
         if i < len(game_text):
             i = game_text.rfind(' ', 0, i) + 1
 
-        text_to_dispaly = FONT_MAIN.render(game_text[:i], 1, BLACK)
-        WIN.blit(text_to_dispaly, (0, line_y))
-
-        #TODO - remove this
-        pygame.display.update()
-
+        # Add the line of text to the list along with the y cords
+        game_text_line_list.append((game_text[:i], line_y))
         line_y += font_height + line_spacing
-
+        
         # updates the string to remove the line that has been dispalyed
         game_text = game_text[i:]
+
+    return game_text_line_list
 
 def get_game_text():
     return pyjokes.get_joke()
@@ -64,7 +64,7 @@ def main():
     clock = pygame.time.Clock()
     
     game_text: str = get_game_text()
-    game_text_lst: list = get_game_text().split()
+    game_text_line_list: list = wrap_game_text(game_text)
     
     run = True
     while run:
@@ -73,10 +73,8 @@ def main():
             if event.type == pygame.QUIT:
                 run = False
         
-        # draw_window()
-        # draw_text(game_text_lst)
-        WIN.fill(WHITE)
-        wrap_game_text(game_text)
+        draw_text(game_text_line_list)
+        
     pygame.quit()
 
 if __name__ == '__main__':
