@@ -1,5 +1,6 @@
 import pygame
-import pyjokes
+import pyjokes # type: ignore
+from typing import Tuple
 pygame.font.init()
 
 # Window setup
@@ -19,14 +20,14 @@ FONT_MAIN = pygame.font.SysFont('courier', 32, True)
 # Misc
 FPS = 60
 
-def draw_text(txt: str, txt_colour: tuple, coords: tuple ) -> None:
-    txt_to_display = FONT_MAIN.render(txt, 1, txt_colour)
+def draw_text(txt: str, txt_colour: Tuple[int, int, int], coords: Tuple[int, int] ) -> None:
+    txt_to_display = FONT_MAIN.render(txt, True, txt_colour)
     WIN.blit(txt_to_display, coords)
 
-def draw_window(msg: list, input_text: str) -> None:
+def draw_window(msg: list, input_text_list: list) -> None:
     WIN.fill(WHITE)
-    for line, y_position in msg:
-        matched_text, incorrect_text = get_matched_text(line, input_text)
+    for i, (line, y_position) in enumerate(msg):
+        matched_text, incorrect_text = get_matched_text(line, input_text_list[i])
         remaining_text = line[len(matched_text) + len(incorrect_text):]
         
         draw_text(matched_text, GREEN, (50, y_position))
@@ -50,7 +51,7 @@ def get_matched_text(current_line: str,current_input: str) -> tuple:
                 
     return(matched_text, incorrect_text)
 
-def wrap_game_text(game_text: str) -> list[str]:
+def wrap_text(game_text: str) -> list[Tuple[str, int]]:
     font_height = FONT_MAIN.get_height()
     line_spacing = 2
     line_y = 0
@@ -77,15 +78,24 @@ def wrap_game_text(game_text: str) -> list[str]:
 
     return game_text_line_list
 
+def add_space_char(words: list[str]) -> list[str]:
+    lst_len = len(words)
+    for i, word in enumerate(words):
+        if i != lst_len - 1:
+            words[i] = word + ' '
+    return words
+
 def get_game_text() -> str:
     return pyjokes.get_joke()
 
 def main() -> None:
     clock = pygame.time.Clock()
     
-    input_text = ''
-    game_text: str = get_game_text()
-    game_text_line_list: list = wrap_game_text(game_text)
+    input_text= ''
+    game_text = get_game_text()
+    game_text_line_list = wrap_text(game_text)
+    game_text_words = add_space_char(game_text.split())
+    # words_per_line = pass
     
     run = True
     while run:
@@ -100,8 +110,8 @@ def main() -> None:
                     input_text = input_text[:-1]
                 else:
                     input_text += event.unicode
-        
-        draw_window(game_text_line_list, input_text)
+        input_text_lst = wrap_text(input_text)
+        draw_window(game_text_line_list, input_text_lst)
         
     pygame.quit()
 
