@@ -85,6 +85,16 @@ def add_space_char(words: list[str]) -> list[str]:
             words[i] = word + ' '
     return words
 
+def get_words_per_line(game_text_line_list: list[Tuple[str, int]], game_text_words: list[str]) -> list[int]:
+    line_word_count = []
+    lst_len = len(game_text_line_list)
+    for i, line in enumerate(game_text_line_list):
+        if i != lst_len - 1:
+            line_word_count.append(line[0].count(' '))
+        else:
+            line_word_count.append(line[0].count(' ') + 1)
+    return line_word_count
+
 def get_game_text() -> str:
     return pyjokes.get_joke()
 
@@ -95,7 +105,9 @@ def main() -> None:
     game_text = get_game_text()
     game_text_line_list = wrap_text(game_text)
     game_text_words = add_space_char(game_text.split())
-    # words_per_line = pass
+    words_per_line = get_words_per_line(game_text_line_list, game_text_words)
+
+
     
     run = True
     while run:
