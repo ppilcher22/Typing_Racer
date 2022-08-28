@@ -1,5 +1,5 @@
 import pygame
-import pyjokes # type: ignore
+import pyjokes  # type: ignore
 from typing import Tuple
 pygame.font.init()
 
@@ -22,28 +22,29 @@ FONT_MAIN = pygame.font.SysFont('courier', 32, True)
 # Misc
 FPS = 60
 
-def draw_text(txt: str, txt_colour: Tuple[int, int, int], coords: Tuple[int, int] ) -> None:
-    txt_to_display = FONT_MAIN.render(txt, True, txt_colour)
-    WIN.blit(txt_to_display, coords)
 
-def draw_window(game_text_lst: list[Tuple[str, str, str]]) -> None:
+def draw_game_text(game_text_lst: list[Tuple[str, str, str]]) -> None:
     WIN.fill(WHITE)
     for line, (correct_text, incorrect_text, remaining_text) in enumerate(game_text_lst):
         # display correct text
         correct_text_disp = FONT_MAIN.render(correct_text, True, GREEN)
         WIN.blit(correct_text_disp, (0, get_line_spacing(line)))
         # display incorrect text
-        incorrect_text_disp = FONT_MAIN.render(incorrect_text, True, INCORRECT_TEXT_RED, INCORRECRT_TEXT_BG)
-        WIN.blit(incorrect_text_disp, (correct_text_disp.get_width(), get_line_spacing(line)))
-        # display remaining texts
+        incorrect_text_disp = FONT_MAIN.render(
+            incorrect_text, True, INCORRECT_TEXT_RED, INCORRECRT_TEXT_BG)
+        WIN.blit(incorrect_text_disp,
+                 (correct_text_disp.get_width(), get_line_spacing(line)))
+        # display remaining text
         remaining_text_disp = FONT_MAIN.render(remaining_text, True, BLACK)
-        WIN.blit(remaining_text_disp, (correct_text_disp.get_width() + incorrect_text_disp.get_width()\
-                    , get_line_spacing(line)))
+        WIN.blit(remaining_text_disp, (correct_text_disp.get_width() +
+                 incorrect_text_disp.get_width(), get_line_spacing(line)))
     pygame.display.update()
 
-#TODO needs improving
+
 def get_line_spacing(current_line: int) -> int:
-    return current_line * (FONT_MAIN.get_height() + 2) 
+    # TODO needs improving
+    return current_line * (FONT_MAIN.get_height() + 2)
+
 
 def get_correct_text(input_text: str, game_text: str) -> Tuple[str, str, str]:
     correct_text = ''
@@ -62,6 +63,7 @@ def get_correct_text(input_text: str, game_text: str) -> Tuple[str, str, str]:
 
     return (correct_text, incorrect_text, remaining_text)
 
+
 def wrap_text(game_text: str) -> list[str]:
     game_text_line_list = []
 
@@ -79,42 +81,28 @@ def wrap_text(game_text: str) -> list[str]:
 
         # Add the line of text to the list along with the y cords
         game_text_line_list.append(game_text[:i])
-        
+
         # updates the string to remove the line that has been dispalyed
         game_text = game_text[i:]
 
     return game_text_line_list
 
-def add_space_char(words: list[str]) -> list[str]:
-    lst_len = len(words)
-    for i, word in enumerate(words):
-        if i != lst_len - 1:
-            words[i] = word + ' '
-    return words
-
-def get_words_per_line(game_text_line_list: list[Tuple[str, int]], game_text_words: list[str]) -> list[int]:
-    line_word_count = []
-    lst_len = len(game_text_line_list)
-    for i, line in enumerate(game_text_line_list):
-        if i != lst_len - 1:
-            line_word_count.append(line[0].count(' '))
-        else:
-            line_word_count.append(line[0].count(' ') + 1)
-    return line_word_count
 
 def get_game_text() -> str:
     return pyjokes.get_joke()
 
+
 def game_complete():
     print('You won')
 
+
 def main() -> None:
     clock = pygame.time.Clock()
-    
-    input_text= ''
+
+    input_text = ''
     game_text = wrap_text(get_game_text())
     current_line = 0
-    proccessed_game_lst = [('', '' , line) for line in game_text]
+    proccessed_game_lst = [('', '', line) for line in game_text]
 
     run = True
     while run:
@@ -128,19 +116,20 @@ def main() -> None:
                 else:
                     input_text += event.unicode
 
-        proccessed_game_lst[current_line] = get_correct_text(input_text, game_text[current_line])
-        
+        proccessed_game_lst[current_line] = get_correct_text(
+            input_text, game_text[current_line])
+
         if proccessed_game_lst[current_line][0] == game_text[current_line]:
             if current_line == len(game_text) - 1:
                 game_complete()
                 run = False
             current_line += 1
             input_text = ''
-        
-        draw_window(proccessed_game_lst)
+
+        draw_game_text(proccessed_game_lst)
 
     pygame.quit()
 
+
 if __name__ == '__main__':
     main()
-    
