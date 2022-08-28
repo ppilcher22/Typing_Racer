@@ -104,7 +104,7 @@ def get_game_text() -> str:
     return pyjokes.get_joke()
 
 def game_complete():
-    pass
+    print('You won')
 
 def main() -> None:
     clock = pygame.time.Clock()
@@ -129,6 +129,9 @@ def main() -> None:
         proccessed_game_lst[current_line] = get_correct_text(input_text, game_text[current_line])
         
         if proccessed_game_lst[current_line][0] == game_text[current_line]:
+            if current_line == len(game_text) - 1:
+                game_complete()
+                run = False
             current_line += 1
             input_text = ''
         
