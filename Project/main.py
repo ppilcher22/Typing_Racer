@@ -1,3 +1,4 @@
+import os
 import pygame
 import pyjokes  # type: ignore
 from typing import Tuple
@@ -5,6 +6,7 @@ pygame.font.init()
 
 # Window setup
 WIDTH, HEIGHT = 900, 600
+os.environ['SDL_VIDEO_WINDOW_POS'] = '1920, 300'
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Type Racer")
 
@@ -17,14 +19,14 @@ INCORRECT_TEXT_RED = (54, 33, 34)
 INCORRECRT_TEXT_BG = (181, 69, 73)
 
 # Fonts
-FONT_MAIN = pygame.font.SysFont('courier', 32, True)
+FONT_MAIN = pygame.font.SysFont('courier', 60, True)
 
 # Misc
 FPS = 60
 
 
 def draw_game_text(game_text_lst: list[Tuple[str, str, str]]) -> None:
-    WIN.fill(WHITE)
+    WIN.fill(BLACK)
     for line, (correct_text, incorrect_text, remaining_text) in enumerate(game_text_lst):
         # display correct text
         correct_text_disp = FONT_MAIN.render(correct_text, True, GREEN)
@@ -35,7 +37,7 @@ def draw_game_text(game_text_lst: list[Tuple[str, str, str]]) -> None:
         WIN.blit(incorrect_text_disp,
                  (correct_text_disp.get_width(), get_line_spacing(line)))
         # display remaining text
-        remaining_text_disp = FONT_MAIN.render(remaining_text, True, BLACK)
+        remaining_text_disp = FONT_MAIN.render(remaining_text, True, WHITE)
         WIN.blit(remaining_text_disp, (correct_text_disp.get_width() +
                  incorrect_text_disp.get_width(), get_line_spacing(line)))
     pygame.display.update()
@@ -79,7 +81,7 @@ def wrap_text(game_text: str) -> list[str]:
         if i < len(game_text):
             i = game_text.rfind(' ', 0, i) + 1
 
-        # Add the line of text to the list along with the y cords
+        # Add the line of text to the list
         game_text_line_list.append(game_text[:i])
 
         # updates the string to remove the line that has been dispalyed
@@ -100,6 +102,7 @@ def main() -> None:
     clock = pygame.time.Clock()
 
     input_text = ''
+    previous_line_input_text = ''
     game_text = wrap_text(get_game_text())
     current_line = 0
     proccessed_game_lst = [('', '', line) for line in game_text]
@@ -112,6 +115,11 @@ def main() -> None:
                 run = False
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_BACKSPACE:
+                    # if deleting will take the user back a line, reset the input text from the previous line
+                    if proccessed_game_lst[current_line][2] == game_text[current_line] \
+                            and current_line != 0:
+                        current_line -= 1
+                        input_text = previous_line_input_text
                     input_text = input_text[:-1]
                 else:
                     input_text += event.unicode
@@ -119,11 +127,15 @@ def main() -> None:
         proccessed_game_lst[current_line] = get_correct_text(
             input_text, game_text[current_line])
 
-        if proccessed_game_lst[current_line][0] == game_text[current_line]:
-            if current_line == len(game_text) - 1:
+        # check if the length of the current input equal the length of the current line
+        if len(input_text) == len(game_text[current_line]):
+            # check if the last line of the game text is correct to end game
+            if proccessed_game_lst[current_line][0] == game_text[len(game_text) - 1]:
                 game_complete()
                 run = False
+            # set variables for new line
             current_line += 1
+            previous_line_input_text = input_text
             input_text = ''
 
         draw_game_text(proccessed_game_lst)
