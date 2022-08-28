@@ -13,6 +13,8 @@ WHITE = (255, 255, 255)
 BLACK = (0, 0, 0,)
 GREEN = (0, 255, 0)
 RED = (255, 0, 0,)
+INCORRECT_TEXT_RED = (54, 33, 34)
+INCORRECRT_TEXT_BG = (181, 69, 73)
 
 # Fonts
 FONT_MAIN = pygame.font.SysFont('courier', 32, True)
@@ -31,7 +33,7 @@ def draw_window(game_text_lst: list[Tuple[str, str, str]]) -> None:
         correct_text_disp = FONT_MAIN.render(correct_text, True, GREEN)
         WIN.blit(correct_text_disp, (0, get_line_spacing(line)))
         # display incorrect text
-        incorrect_text_disp = FONT_MAIN.render(incorrect_text, True, RED)
+        incorrect_text_disp = FONT_MAIN.render(incorrect_text, True, INCORRECT_TEXT_RED, INCORRECRT_TEXT_BG)
         WIN.blit(incorrect_text_disp, (correct_text_disp.get_width(), get_line_spacing(line)))
         # display remaining texts
         remaining_text_disp = FONT_MAIN.render(remaining_text, True, BLACK)
@@ -48,11 +50,11 @@ def get_correct_text(input_text: str, game_text: str) -> Tuple[str, str, str]:
     incorrect_text = ''
     remaining_text = ''
 
-    if len(input_text) != 0:
+    if len(input_text):
         for i, char in enumerate(input_text):
             if char != game_text[i]:
                 correct_text = input_text[:i]
-                incorrect_text = input_text[i:]
+                incorrect_text = game_text[len(correct_text):len(input_text)]
                 break
         else:
             correct_text = input_text
