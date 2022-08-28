@@ -24,25 +24,43 @@ def draw_text(txt: str, txt_colour: Tuple[int, int, int], coords: Tuple[int, int
     txt_to_display = FONT_MAIN.render(txt, True, txt_colour)
     WIN.blit(txt_to_display, coords)
 
-def draw_window(msg: list, input_text_list: list) -> None:
+def draw_window(correct_words: int, matched_input: str, incorrect_text: str, 
+                game_text: str, game_text_words: list[str], words_per_line: list[int]) -> None:
+    
     WIN.fill(WHITE)
-    for i, (line, y_position) in enumerate(msg):
-        matched_text, incorrect_text = get_matched_text(line, input_text_list[i])
-        remaining_text = line[len(matched_text) + len(incorrect_text):]
-        
-        draw_text(matched_text, GREEN, (50, y_position))
-        draw_text(incorrect_text, RED, (50 + FONT_MAIN.size(matched_text)[0], y_position))
-        draw_text(remaining_text, BLACK, (50 + FONT_MAIN.size(matched_text)[0] 
-                                    + FONT_MAIN.size(incorrect_text)[0], y_position))
+    # loop through all words to display
+    current_line = 0
+    current_line_text = ''
+    correct_words_display = FONT_MAIN.render('', True, GREEN)
+    for i, word in enumerate(game_text_words):
+        if i >= words_per_line[current_line]:
+            current_line =+ 1
+            current_line_text = ''
+        current_line_text += word
+        if i < correct_words:
+            correct_words_display = FONT_MAIN.render(current_line_text, True, GREEN)
+            WIN.blit(correct_words_display, (0, get_line_spacing(current_line)))
+        elif incorrect_text:
+            pass
+        else:
+            remaining_text = ''.join(game_text_words[correct_words:words_per_line[current_line]])
+            remaining_text_display = FONT_MAIN.render(remaining_text, True, BLACK)
+            WIN.blit(remaining_text_display, (correct_words_display.get_width(), get_line_spacing(current_line)))
+
+    
     pygame.display.update()
 
-def get_matched_text(current_line: str,current_input: str) -> tuple:
+#TODO needs improving
+def get_line_spacing(current_line: int) -> int:
+    return current_line * FONT_MAIN.get_height() * 2 
+
+def get_matched_text(current_word: str, current_input: str) -> Tuple[str, str]:
     matched_text = ''
     incorrect_text = ''
 
     if len(current_input) != 0: 
         for i, char in enumerate(current_input): 
-            if char != current_line[i]:
+            if char != current_word[i]:
                 matched_text = current_input[:i]
                 incorrect_text = current_input[i:]
                 break
@@ -98,16 +116,21 @@ def get_words_per_line(game_text_line_list: list[Tuple[str, int]], game_text_wor
 def get_game_text() -> str:
     return pyjokes.get_joke()
 
+def game_complete():
+    pass
+
 def main() -> None:
     clock = pygame.time.Clock()
     
     input_text= ''
+    correct_words: int = 0
     game_text = get_game_text()
-    game_text_line_list = wrap_text(game_text)
+    
+    #TODO - remove after testing
+    print(game_text)
+   
     game_text_words = add_space_char(game_text.split())
-    words_per_line = get_words_per_line(game_text_line_list, game_text_words)
-
-
+    words_per_line = get_words_per_line(wrap_text(game_text), game_text_words)
     
     run = True
     while run:
@@ -116,14 +139,23 @@ def main() -> None:
             if event.type == pygame.QUIT:
                 run = False
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_RETURN:
-                    input_text = ''
-                elif event.key == pygame.K_BACKSPACE:
+                if event.key == pygame.K_BACKSPACE:
                     input_text = input_text[:-1]
                 else:
                     input_text += event.unicode
-        input_text_lst = wrap_text(input_text)
-        draw_window(game_text_line_list, input_text_lst)
+
+        
+        # check if the current input matches the current word
+        if correct_words < len(game_text_words):
+            matched_input, incorrect_text = get_matched_text(game_text_words[correct_words], input_text)
+            if matched_input == game_text_words[correct_words]:
+                correct_words += 1
+                input_text = ''
+        else:
+            game_complete()
+
+        draw_window(correct_words, matched_input, incorrect_text, game_text, 
+                                        game_text_words, words_per_line)
         
     pygame.quit()
 
