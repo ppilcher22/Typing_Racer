@@ -127,10 +127,10 @@ def main() -> None:
         proccessed_game_lst[current_line] = get_correct_text(
             input_text, game_text[current_line])
 
-        # check if the length of the current input equal the length of the current line
+        # check if the length of the current input equals the length of the current line
         if len(input_text) == len(game_text[current_line]):
-            # check if the last line of the game text is correct to end game
-            if proccessed_game_lst[current_line][0] == game_text[len(game_text) - 1]:
+            # check if the last line of the game text is matched to last line of the input
+            if proccessed_game_lst[current_line][0] == game_text[len(game_text) - 1] and current_line == len(game_text) - 1:
                 game_complete()
                 run = False
             # set variables for new line
