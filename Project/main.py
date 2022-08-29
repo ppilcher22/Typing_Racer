@@ -26,7 +26,7 @@ FONT_MAIN = pygame.font.SysFont('courier', 60, True)
 FPS = 60
 
 
-def draw_game_text(game_text_lst: list[Tuple[str, str, str]], current_line: int) -> None:
+def draw(game_text_lst: list[Tuple[str, str, str]], current_line: int, current_time: int, wpm: float) -> None:
     WIN.fill(BLACK)
     for line, (correct_text, incorrect_text, remaining_text) in enumerate(game_text_lst):
         line_spacing = get_line_spacing(line)
@@ -43,11 +43,21 @@ def draw_game_text(game_text_lst: list[Tuple[str, str, str]], current_line: int)
         WIN.blit(remaining_text_disp, (correct_text_disp.get_width() +
                  incorrect_text_disp.get_width(), line_spacing))
 
+        # draw cursor
         if line == current_line:
             cursor_position_x = correct_text_disp.get_width() + incorrect_text_disp.get_width()
             # blink the cursor
             if time.time() % 1 > 0.5:
                 pygame.draw.rect(WIN, WHITE, pygame.Rect(cursor_position_x, line_spacing , 3, FONT_MAIN.get_height()))
+    
+    # draw timer
+    time_text = FONT_MAIN.render(f"Time elapsed: {round(current_time, 2)}", True, WHITE)
+    WIN.blit(time_text, (0, HEIGHT / 2))
+
+    # draw wpm
+    wpm_text = FONT_MAIN.render(f"WPM: {round(wpm)}", True, WHITE)
+    WIN.blit(wpm_text, (0, HEIGHT - FONT_MAIN.get_height()))
+    
     pygame.display.update()
 
 
@@ -108,12 +118,20 @@ def get_game_text() -> str:
 def game_complete():
     print('You won')
 
+def get_wpm(game_text_lst: list[Tuple[str, str, str]], current_time: float) -> float:
+    correct_chars = 0
+    for line in game_text_lst:
+        correct_chars += len(line[0])
+    wpm = correct_chars / 5 / current_time * 60
+    return wpm
 
 def main() -> None:
     clock = pygame.time.Clock()
 
     input_text = ''
     current_line = 0
+    start_time = 0
+    wpm = 0
     
     # TODO - revert this after testing is complete
     while True:
@@ -130,10 +148,18 @@ def main() -> None:
     run = True
     while run:
         clock.tick(FPS)
+
+        if start_time > 0:
+            current_time = time.time() - start_time
+            wpm = get_wpm(proccessed_game_lst, current_time)
+        else:
+            current_time = 0
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
             elif event.type == pygame.KEYDOWN:
+                if start_time == 0:
+                    start_time = time.time()
                 if event.key == pygame.K_BACKSPACE:
                     # if deleting will take the user back a line, reset the input text from the previous line
                     if proccessed_game_lst[current_line][2] == game_text[current_line] \
@@ -162,7 +188,10 @@ def main() -> None:
         elif len(input_text) > len(game_text[current_line]):
             input_text = input_text[:-1]
 
-        draw_game_text(proccessed_game_lst, current_line)
+        draw(proccessed_game_lst, current_line, current_time, wpm)
+
+        
+
 
     pygame.quit()
 
