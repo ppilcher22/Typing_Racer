@@ -150,6 +150,9 @@ def main() -> None:
                 input_text_for_line[current_line] = input_text
                 input_text = ''
                 current_line += 1
+        # limit the length of the input for incorrect inputs on the last line
+        elif len(input_text) > len(game_text[current_line]):
+            input_text = input_text[:-1]
 
         draw_game_text(proccessed_game_lst)
 
