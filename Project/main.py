@@ -48,12 +48,15 @@ def get_line_spacing(current_line: int) -> int:
     return current_line * (FONT_MAIN.get_height() + 2)
 
 
-def get_correct_text(input_text: str, game_text: str) -> Tuple[str, str, str]:
+def get_correct_text(input_text: str, game_text: str, previous_line_incorrect_text: str
+                                                                ) -> Tuple[str, str, str]:
     correct_text = ''
     incorrect_text = ''
     remaining_text = ''
 
-    if len(input_text):
+    if previous_line_incorrect_text:
+        incorrect_text = game_text[len(correct_text):len(input_text)]
+    elif len(input_text):
         for i, char in enumerate(input_text):
             if char != game_text[i]:
                 correct_text = input_text[:i]
@@ -102,9 +105,9 @@ def main() -> None:
     clock = pygame.time.Clock()
 
     input_text = ''
-    previous_line_input_text = ''
-    game_text = wrap_text(get_game_text())
     current_line = 0
+    game_text = wrap_text(get_game_text())
+    input_text_for_line = ['' for _ in game_text]
     proccessed_game_lst = [('', '', line) for line in game_text]
 
     run = True
@@ -119,13 +122,13 @@ def main() -> None:
                     if proccessed_game_lst[current_line][2] == game_text[current_line] \
                             and current_line != 0:
                         current_line -= 1
-                        input_text = previous_line_input_text
+                        input_text = input_text_for_line[current_line]
                     input_text = input_text[:-1]
                 else:
                     input_text += event.unicode
 
         proccessed_game_lst[current_line] = get_correct_text(
-            input_text, game_text[current_line])
+            input_text, game_text[current_line], proccessed_game_lst[current_line - 1][1])
 
         # check if the length of the current input equals the length of the current line
         if len(input_text) == len(game_text[current_line]):
@@ -134,9 +137,9 @@ def main() -> None:
                 game_complete()
                 run = False
             # set variables for new line
-            current_line += 1
-            previous_line_input_text = input_text
+            input_text_for_line[current_line] = input_text
             input_text = ''
+            current_line += 1
 
         draw_game_text(proccessed_game_lst)
 
