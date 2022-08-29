@@ -6,7 +6,7 @@ from typing import Tuple
 pygame.font.init()
 
 # Window setup
-WIDTH, HEIGHT = 1200, 750
+WIDTH, HEIGHT = 1000, 650
 os.environ['SDL_VIDEO_WINDOW_POS'] = '1920, 300'
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Type Racer")
@@ -28,7 +28,6 @@ FONT_STATS = pygame.font.SysFont('arial', 36)
 BG_MAIN = pygame.transform.scale(pygame.image.load
 (os.path.join('Project\\assets', 'mechanicalkeyboards_bg.png')), (WIDTH, HEIGHT))
 
-
 # Misc
 FPS = 60
 
@@ -41,12 +40,12 @@ def draw(game_text_lst: list[Tuple[str, str, str]], current_line: int, current_t
     stats_rect = pygame.draw.rect(WIN, TEXT_BOX_BG, (0, 0, WIDTH, FONT_STATS.get_height() + 10), 0)
 
     # draw timer
-    time_text = FONT_STATS.render(f"| Time elapsed: {round(current_time, 2)}", True, WHITE)
-    WIN.blit(time_text, (stats_rect.width/2, stats_rect.centery - FONT_STATS.get_height() / 2))
+    time_text = FONT_STATS.render(f"Time elapsed: {round(current_time, 2)}", True, WHITE)
+    WIN.blit(time_text, (stats_rect.width/6, stats_rect.centery - FONT_STATS.get_height() / 2))
 
     # draw wpm
     wpm_text = FONT_STATS.render(f"WPM: {round(wpm)}", True, WHITE)
-    WIN.blit(wpm_text, (stats_rect.centerx - wpm_text.get_width() - 10, stats_rect.centery - FONT_STATS.get_height() / 2))
+    WIN.blit(wpm_text, (stats_rect.width*2/3, stats_rect.centery - FONT_STATS.get_height() / 2))
     
     # draw game text
     text_box_position = (50, 200)
@@ -113,7 +112,7 @@ def wrap_text(game_text: str) -> list[str]:
         i = 1
 
         # determine width of the line relative to the width of the window
-        while FONT_MAIN.size(game_text[:i])[0] < WIDTH - 105 and i < len(game_text):
+        while FONT_MAIN.size(game_text[:i])[0] < WIDTH - 120 and i < len(game_text):
             i += 1
 
         # adjust index to find last space before end of line to avoid word chopping
