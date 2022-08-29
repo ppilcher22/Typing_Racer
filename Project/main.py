@@ -106,7 +106,16 @@ def main() -> None:
 
     input_text = ''
     current_line = 0
-    game_text = wrap_text(get_game_text())
+    
+    # TODO - revert this after testing is complete
+    while True:
+        testing_text = get_game_text()
+        if len(testing_text) < 60:
+            break
+    game_text = wrap_text(testing_text)
+    # ***********************************
+    
+    # game_text = wrap_text(get_game_text())
     input_text_for_line = ['' for _ in game_text]
     proccessed_game_lst = [('', '', line) for line in game_text]
 
@@ -136,10 +145,11 @@ def main() -> None:
             if proccessed_game_lst[current_line][0] == game_text[len(game_text) - 1] and current_line == len(game_text) - 1:
                 game_complete()
                 run = False
-            # set variables for new line
-            input_text_for_line[current_line] = input_text
-            input_text = ''
-            current_line += 1
+            # set variables for new line if not at last line a
+            if current_line != len(game_text) - 1:
+                input_text_for_line[current_line] = input_text
+                input_text = ''
+                current_line += 1
 
         draw_game_text(proccessed_game_lst)
 
