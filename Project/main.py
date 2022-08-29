@@ -1,4 +1,5 @@
 import os
+import time
 import pygame
 import pyjokes  # type: ignore
 from typing import Tuple
@@ -25,21 +26,28 @@ FONT_MAIN = pygame.font.SysFont('courier', 60, True)
 FPS = 60
 
 
-def draw_game_text(game_text_lst: list[Tuple[str, str, str]]) -> None:
+def draw_game_text(game_text_lst: list[Tuple[str, str, str]], current_line: int) -> None:
     WIN.fill(BLACK)
     for line, (correct_text, incorrect_text, remaining_text) in enumerate(game_text_lst):
+        line_spacing = get_line_spacing(line)
         # display correct text
         correct_text_disp = FONT_MAIN.render(correct_text, True, GREEN)
-        WIN.blit(correct_text_disp, (0, get_line_spacing(line)))
+        WIN.blit(correct_text_disp, (0, line_spacing))
         # display incorrect text
         incorrect_text_disp = FONT_MAIN.render(
             incorrect_text, True, INCORRECT_TEXT_RED, INCORRECRT_TEXT_BG)
         WIN.blit(incorrect_text_disp,
-                 (correct_text_disp.get_width(), get_line_spacing(line)))
+                 (correct_text_disp.get_width(), line_spacing))
         # display remaining text
         remaining_text_disp = FONT_MAIN.render(remaining_text, True, WHITE)
         WIN.blit(remaining_text_disp, (correct_text_disp.get_width() +
-                 incorrect_text_disp.get_width(), get_line_spacing(line)))
+                 incorrect_text_disp.get_width(), line_spacing))
+
+        if line == current_line:
+            cursor_position_x = correct_text_disp.get_width() + incorrect_text_disp.get_width()
+            # blink the cursor
+            if time.time() % 1 > 0.5:
+                pygame.draw.rect(WIN, WHITE, pygame.Rect(cursor_position_x, line_spacing , 3, FONT_MAIN.get_height()))
     pygame.display.update()
 
 
@@ -154,7 +162,7 @@ def main() -> None:
         elif len(input_text) > len(game_text[current_line]):
             input_text = input_text[:-1]
 
-        draw_game_text(proccessed_game_lst)
+        draw_game_text(proccessed_game_lst, current_line)
 
     pygame.quit()
 
