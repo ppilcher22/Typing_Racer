@@ -6,7 +6,7 @@ from typing import Tuple
 pygame.font.init()
 
 # Window setup
-WIDTH, HEIGHT = 900, 600
+WIDTH, HEIGHT = 1200, 750
 os.environ['SDL_VIDEO_WINDOW_POS'] = '1920, 300'
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Type Racer")
@@ -18,45 +18,63 @@ GREEN = (0, 255, 0)
 RED = (255, 0, 0,)
 INCORRECT_TEXT_RED = (54, 33, 34)
 INCORRECRT_TEXT_BG = (181, 69, 73)
+TEXT_BOX_BG = (41, 38, 38)
 
 # Fonts
-FONT_MAIN = pygame.font.SysFont('courier', 60, True)
+FONT_MAIN = pygame.font.SysFont('courier', 45)
+FONT_STATS = pygame.font.SysFont('arial', 36)
+
+# Assets
+BG_MAIN = pygame.transform.scale(pygame.image.load
+(os.path.join('Project\\assets', 'mechanicalkeyboards_bg.png')), (WIDTH, HEIGHT))
+
 
 # Misc
 FPS = 60
 
 
-def draw(game_text_lst: list[Tuple[str, str, str]], current_line: int, current_time: int, wpm: float) -> None:
-    WIN.fill(BLACK)
+def draw(game_text_lst: list[Tuple[str, str, str]], current_line: int, current_time: int, 
+            wpm: float) -> None:
+    
+    WIN.blit(BG_MAIN, (0, 0))
+    # draw stats rect
+    stats_rect = pygame.draw.rect(WIN, TEXT_BOX_BG, (0, 0, WIDTH, FONT_STATS.get_height() + 10), 0)
+
+    # draw timer
+    time_text = FONT_STATS.render(f"| Time elapsed: {round(current_time, 2)}", True, WHITE)
+    WIN.blit(time_text, (stats_rect.width/2, stats_rect.centery - FONT_STATS.get_height() / 2))
+
+    # draw wpm
+    wpm_text = FONT_STATS.render(f"WPM: {round(wpm)}", True, WHITE)
+    WIN.blit(wpm_text, (stats_rect.centerx - wpm_text.get_width() - 10, stats_rect.centery - FONT_STATS.get_height() / 2))
+    
+    # draw game text
+    text_box_position = (50, 200)
+    pygame.draw.rect(WIN, TEXT_BOX_BG, (text_box_position[0], text_box_position[1], 
+    WIDTH - 100, HEIGHT / 2 ), 0)
     for line, (correct_text, incorrect_text, remaining_text) in enumerate(game_text_lst):
-        line_spacing = get_line_spacing(line)
+        line_spacing = get_line_spacing(line) + text_box_position[1]
         # display correct text
         correct_text_disp = FONT_MAIN.render(correct_text, True, GREEN)
-        WIN.blit(correct_text_disp, (0, line_spacing))
+        WIN.blit(correct_text_disp, (text_box_position[0], line_spacing))
         # display incorrect text
         incorrect_text_disp = FONT_MAIN.render(
             incorrect_text, True, INCORRECT_TEXT_RED, INCORRECRT_TEXT_BG)
         WIN.blit(incorrect_text_disp,
-                 (correct_text_disp.get_width(), line_spacing))
+                 (correct_text_disp.get_width() + text_box_position[0], line_spacing))
         # display remaining text
         remaining_text_disp = FONT_MAIN.render(remaining_text, True, WHITE)
         WIN.blit(remaining_text_disp, (correct_text_disp.get_width() +
-                 incorrect_text_disp.get_width(), line_spacing))
+                 incorrect_text_disp.get_width() + text_box_position[0], line_spacing))
 
         # draw cursor
         if line == current_line:
-            cursor_position_x = correct_text_disp.get_width() + incorrect_text_disp.get_width()
+            cursor_position_x = correct_text_disp.get_width() \
+                + incorrect_text_disp.get_width() + text_box_position[0]
             # blink the cursor
             if time.time() % 1 > 0.5:
-                pygame.draw.rect(WIN, WHITE, pygame.Rect(cursor_position_x, line_spacing , 3, FONT_MAIN.get_height()))
-    
-    # draw timer
-    time_text = FONT_MAIN.render(f"Time elapsed: {round(current_time, 2)}", True, WHITE)
-    WIN.blit(time_text, (0, HEIGHT / 2))
-
-    # draw wpm
-    wpm_text = FONT_MAIN.render(f"WPM: {round(wpm)}", True, WHITE)
-    WIN.blit(wpm_text, (0, HEIGHT - FONT_MAIN.get_height()))
+                pygame.draw.rect(WIN, WHITE, pygame.Rect(
+                    cursor_position_x, line_spacing , 3, FONT_MAIN.get_height()))
     
     pygame.display.update()
 
@@ -95,7 +113,7 @@ def wrap_text(game_text: str) -> list[str]:
         i = 1
 
         # determine width of the line relative to the width of the window
-        while FONT_MAIN.size(game_text[:i])[0] < WIDTH - 100 and i < len(game_text):
+        while FONT_MAIN.size(game_text[:i])[0] < WIDTH - 105 and i < len(game_text):
             i += 1
 
         # adjust index to find last space before end of line to avoid word chopping
@@ -132,16 +150,11 @@ def main() -> None:
     current_line = 0
     start_time = 0
     wpm = 0
-    
-    # TODO - revert this after testing is complete
     while True:
-        testing_text = get_game_text()
-        if len(testing_text) < 60:
+        game_text = wrap_text(get_game_text())
+        if len(game_text) >= 2:
             break
-    game_text = wrap_text(testing_text)
-    # ***********************************
-    
-    # game_text = wrap_text(get_game_text())
+        
     input_text_for_line = ['' for _ in game_text]
     proccessed_game_lst = [('', '', line) for line in game_text]
 
