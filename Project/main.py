@@ -7,7 +7,7 @@ pygame.font.init()
 
 # Window setup
 WIDTH, HEIGHT = 1000, 650
-os.environ['SDL_VIDEO_WINDOW_POS'] = '1920, 300'
+# os.environ['SDL_VIDEO_WINDOW_POS'] = '1920, 300'
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Type Racer")
 
@@ -23,6 +23,7 @@ TEXT_BOX_BG = (41, 38, 38)
 # Fonts
 FONT_MAIN = pygame.font.SysFont('courier', 45)
 FONT_STATS = pygame.font.SysFont('arial', 36)
+FONT_GAME_COMPLETE = pygame.font.SysFont('arial', 60)
 
 # Assets
 BG_MAIN = pygame.transform.scale(pygame.image.load
@@ -132,8 +133,15 @@ def get_game_text() -> str:
     return pyjokes.get_joke()
 
 
-def game_complete():
-    print('You won')
+def game_complete(wpm: float, current_time: float):
+    WIN.blit(BG_MAIN, (0, 0))
+    text_rect = pygame.draw.rect(WIN, TEXT_BOX_BG, (0, HEIGHT / 2 , WIDTH, FONT_GAME_COMPLETE.get_height() + 10), 0)
+    text_disp = FONT_GAME_COMPLETE.render(f'Game complete in {round(current_time, 2)} secs with {round(wpm)} wpm', True, WHITE)
+    WIN.blit(text_disp, text_rect)
+    pygame.display.update()
+    pygame.time.delay(5000)
+    main()
+
 
 def get_wpm(game_text_lst: list[Tuple[str, str, str]], current_time: float) -> float:
     correct_chars = 0
@@ -160,15 +168,17 @@ def main() -> None:
     run = True
     while run:
         clock.tick(FPS)
-
+        
         if start_time > 0:
             current_time = time.time() - start_time
             wpm = get_wpm(proccessed_game_lst, current_time)
         else:
             current_time = 0
+        
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
+                pygame.quit()
             elif event.type == pygame.KEYDOWN:
                 if start_time == 0:
                     start_time = time.time()
@@ -189,8 +199,8 @@ def main() -> None:
         if len(input_text) == len(game_text[current_line]):
             # check if the last line of the game text is matched to last line of the input
             if proccessed_game_lst[current_line][0] == game_text[len(game_text) - 1] and current_line == len(game_text) - 1:
-                game_complete()
-                run = False
+                game_complete(wpm, current_time)
+                break
             # set variables for new line if not at last line a
             if current_line != len(game_text) - 1:
                 input_text_for_line[current_line] = input_text
@@ -201,12 +211,9 @@ def main() -> None:
             input_text = input_text[:-1]
 
         draw(proccessed_game_lst, current_line, current_time, wpm)
-
-        
-
-
-    pygame.quit()
-
+    
+    main()
+    
 
 if __name__ == '__main__':
     main()
