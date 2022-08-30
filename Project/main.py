@@ -136,10 +136,8 @@ def game_complete(wpm: float, current_time: float):
     main()
 
 
-def get_wpm(game_text_lst: list[Tuple[str, str, str]], current_time: float) -> float:
-    correct_chars = 0
-    for line in game_text_lst:
-        correct_chars += len(line[0])
+def get_wpm(input_text: str, incorrect_text_len: int, current_time: float) -> float:
+    correct_chars = len(input_text) - incorrect_text_len
     wpm = correct_chars / 5 / current_time * 60
     return wpm
 
@@ -147,13 +145,10 @@ def main() -> None:
     clock = pygame.time.Clock()
 
     input_text = ''
-    current_line = 0
+    incorrect_text_start, incorrect_text_len = 0, 0
     start_time = 0
     wpm = 0
     game_text = get_game_text()
-        
-    input_text_for_line = ['' for _ in game_text]
-    proccessed_game_lst = [('', '', line) for line in game_text]
 
     run = True
     while run:
@@ -161,7 +156,7 @@ def main() -> None:
         
         if start_time > 0:
             current_time = time.time() - start_time
-            wpm = get_wpm(proccessed_game_lst, current_time)
+            wpm = get_wpm(input_text, incorrect_text_len , current_time)
         else:
             current_time = 0
         
@@ -173,33 +168,18 @@ def main() -> None:
                 if start_time == 0:
                     start_time = time.time()
                 if event.key == pygame.K_BACKSPACE:
-                    # if deleting will take the user back a line, reset the input text from the previous line
-                    if proccessed_game_lst[current_line][2] == game_text[current_line] \
-                            and current_line != 0:
-                        current_line -= 1
-                        input_text = input_text_for_line[current_line]
                     input_text = input_text[:-1]
                 else:
-                    input_text += event.unicode
+                    if len(input_text) < len(game_text)
+                        input_text += event.unicode
 
-        incorrect_text = get_incorrect_text(input_text, game_text)
+        incorrect_text_start, incorrect_text_len = get_incorrect_text(input_text, game_text)
 
-        # check if the length of the current input equals the length of the current line
-        if len(input_text) == len(game_text[current_line]):
-            # check if the last line of the game text is matched to last line of the input
-            if proccessed_game_lst[current_line][0] == game_text[len(game_text) - 1] and current_line == len(game_text) - 1:
-                game_complete(wpm, current_time)
-                break
-            # set variables for new line if not at last line a
-            if current_line != len(game_text) - 1:
-                input_text_for_line[current_line] = input_text
-                input_text = ''
-                current_line += 1
-        # limit the length of the input for incorrect inputs on the last line
-        elif len(input_text) > len(game_text[current_line]):
-            input_text = input_text[:-1]
+        # game complete check
+        if input_text == game_text:
+            game_complete(wpm, current_time)
 
-        draw(proccessed_game_lst, current_line, current_time, wpm)
+        draw(input_text, incorrect_text, game_text, current_time, wpm)
     
     main()
     
