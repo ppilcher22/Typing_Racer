@@ -84,25 +84,18 @@ def get_line_spacing(current_line: int) -> int:
     return current_line * (FONT_MAIN.get_height() + 2)
 
 
-def get_correct_text(input_text: str, game_text: str, previous_line_incorrect_text: str
-                                                                ) -> Tuple[str, str, str]:
-    correct_text = ''
-    incorrect_text = ''
-    remaining_text = ''
+def get_incorrect_text(input_text: str, game_text: str) -> Tuple[int, int]:
+    incorrect_text_start = 0
+    incorrect_text_len = 0
 
-    if previous_line_incorrect_text:
-        incorrect_text = game_text[len(correct_text):len(input_text)]
-    elif len(input_text):
+    if len(input_text):
         for i, char in enumerate(input_text):
             if char != game_text[i]:
-                correct_text = input_text[:i]
-                incorrect_text = game_text[len(correct_text):len(input_text)]
+                incorrect_text_start = i
+                incorrect_text_len = len(input_text[i:])
                 break
-        else:
-            correct_text = input_text
-    remaining_text = game_text[len(correct_text) + len(incorrect_text):]
-
-    return (correct_text, incorrect_text, remaining_text)
+                
+    return (incorrect_text_start, incorrect_text_len)
 
 
 def wrap_text(game_text: str) -> list[str]:
@@ -157,10 +150,7 @@ def main() -> None:
     current_line = 0
     start_time = 0
     wpm = 0
-    while True:
-        game_text = wrap_text(get_game_text())
-        if len(game_text) >= 2:
-            break
+    game_text = get_game_text()
         
     input_text_for_line = ['' for _ in game_text]
     proccessed_game_lst = [('', '', line) for line in game_text]
@@ -192,8 +182,7 @@ def main() -> None:
                 else:
                     input_text += event.unicode
 
-        proccessed_game_lst[current_line] = get_correct_text(
-            input_text, game_text[current_line], proccessed_game_lst[current_line - 1][1])
+        incorrect_text = get_incorrect_text(input_text, game_text)
 
         # check if the length of the current input equals the length of the current line
         if len(input_text) == len(game_text[current_line]):
