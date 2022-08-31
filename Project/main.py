@@ -2,12 +2,12 @@ import os
 import time
 import pygame
 import pyjokes  # type: ignore
-from typing import Tuple
+from typing import Any, Tuple
 pygame.font.init()
 
 # Window setup
 WIDTH, HEIGHT = 1000, 650
-# os.environ['SDL_VIDEO_WINDOW_POS'] = '1920, 300'
+# hos.environ['SDL_VIDEO_WINDOW_POS'] = '1920, 300'
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Type Racer")
 
@@ -33,8 +33,8 @@ BG_MAIN = pygame.transform.scale(pygame.image.load
 FPS = 60
 
 
-def draw(game_text_lst: list[Tuple[str, str, str]], current_line: int, current_time: int, 
-            wpm: float) -> None:
+def draw(input_text: str, game_text: str, game_text_lst: list[str]
+                , current_time: float, wpm: float) -> None:
     
     WIN.blit(BG_MAIN, (0, 0))
     # draw stats rect
@@ -52,7 +52,10 @@ def draw(game_text_lst: list[Tuple[str, str, str]], current_line: int, current_t
     text_box_position = (50, 200)
     pygame.draw.rect(WIN, TEXT_BOX_BG, (text_box_position[0], text_box_position[1], 
     WIDTH - 100, HEIGHT / 2 ), 0)
-    for line, (correct_text, incorrect_text, remaining_text) in enumerate(game_text_lst):
+
+    processed_game_list = process_game_list(game_text_lst, input_text)
+
+    for line, (correct_text, incorrect_text, remaining_text) in enumerate(processed_game_list):
         line_spacing = get_line_spacing(line) + text_box_position[1]
         # display correct text
         correct_text_disp = FONT_MAIN.render(correct_text, True, GREEN)
@@ -68,13 +71,13 @@ def draw(game_text_lst: list[Tuple[str, str, str]], current_line: int, current_t
                  incorrect_text_disp.get_width() + text_box_position[0], line_spacing))
 
         # draw cursor
-        if line == current_line:
-            cursor_position_x = correct_text_disp.get_width() \
-                + incorrect_text_disp.get_width() + text_box_position[0]
-            # blink the cursor
-            if time.time() % 1 > 0.5:
-                pygame.draw.rect(WIN, WHITE, pygame.Rect(
-                    cursor_position_x, line_spacing , 3, FONT_MAIN.get_height()))
+        # if line == current_line:
+        #     cursor_position_x = correct_text_disp.get_width() \
+        #         + incorrect_text_disp.get_width() + text_box_position[0]
+        #     # blink the cursor
+        #     if time.time() % 1 > 0.5:
+        #         pygame.draw.rect(WIN, WHITE, pygame.Rect(
+        #             cursor_position_x, line_spacing , 3, FONT_MAIN.get_height()))
     
     pygame.display.update()
 
@@ -84,18 +87,27 @@ def get_line_spacing(current_line: int) -> int:
     return current_line * (FONT_MAIN.get_height() + 2)
 
 
-def get_incorrect_text(input_text: str, game_text: str) -> Tuple[int, int]:
-    incorrect_text_start = 0
-    incorrect_text_len = 0
+def process_game_list(game_text_lst: list[str], input_text: str) -> list[Any]:
+    processed_game_list = []
 
-    if len(input_text):
-        for i, char in enumerate(input_text):
-            if char != game_text[i]:
-                incorrect_text_start = i
-                incorrect_text_len = len(input_text[i:])
-                break
-                
-    return (incorrect_text_start, incorrect_text_len)
+    for line in game_text_lst:
+        correct_text = ''
+        incorrect_text = ''
+        remaining_text = ''
+        
+        if len(input_text):
+            for i, char in enumerate(input_text[:len(line)]):
+                if char != line[i]:
+                    correct_text = input_text[:i]
+                    incorrect_text = line[len(correct_text):len(input_text[:len(line)])]
+                    break
+            else:
+                correct_text = input_text[:len(line)]
+            input_text = input_text[len(line):]
+        remaining_text = line[len(correct_text) + len(incorrect_text):]
+        processed_game_list.append((correct_text, incorrect_text, remaining_text))
+
+    return processed_game_list
 
 
 def wrap_text(game_text: str) -> list[str]:
@@ -145,10 +157,10 @@ def main() -> None:
     clock = pygame.time.Clock()
 
     input_text = ''
-    incorrect_text_start, incorrect_text_len = 0, 0
     start_time = 0
     wpm = 0
     game_text = get_game_text()
+    game_text_lst = wrap_text(game_text)
 
     run = True
     while run:
@@ -156,7 +168,7 @@ def main() -> None:
         
         if start_time > 0:
             current_time = time.time() - start_time
-            wpm = get_wpm(input_text, incorrect_text_len , current_time)
+            #wpm = get_wpm(input_text, incorrect_text_len , current_time)
         else:
             current_time = 0
         
@@ -170,16 +182,15 @@ def main() -> None:
                 if event.key == pygame.K_BACKSPACE:
                     input_text = input_text[:-1]
                 else:
-                    if len(input_text) < len(game_text)
+                    if len(input_text) < len(game_text):
                         input_text += event.unicode
 
-        incorrect_text_start, incorrect_text_len = get_incorrect_text(input_text, game_text)
 
         # game complete check
         if input_text == game_text:
             game_complete(wpm, current_time)
 
-        draw(input_text, incorrect_text, game_text, current_time, wpm)
+        draw(input_text, game_text, game_text_lst, current_time, wpm)
     
     main()
     
