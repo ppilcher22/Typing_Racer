@@ -34,7 +34,7 @@ FPS = 60
 
 
 def draw(input_text: str, game_text: str, game_text_lst: list[str]
-                , current_time: float, wpm: float) -> None:
+                , current_time: float, wpm: float, current_line: int) -> None:
     
     WIN.blit(BG_MAIN, (0, 0))
     # draw stats rect
@@ -55,6 +55,7 @@ def draw(input_text: str, game_text: str, game_text_lst: list[str]
 
     processed_game_list = process_game_list(game_text_lst, input_text)
 
+
     for line, (correct_text, incorrect_text, remaining_text) in enumerate(processed_game_list):
         line_spacing = get_line_spacing(line) + text_box_position[1]
         # display correct text
@@ -71,13 +72,13 @@ def draw(input_text: str, game_text: str, game_text_lst: list[str]
                  incorrect_text_disp.get_width() + text_box_position[0], line_spacing))
 
         # draw cursor
-        # if line == current_line:
-        #     cursor_position_x = correct_text_disp.get_width() \
-        #         + incorrect_text_disp.get_width() + text_box_position[0]
-        #     # blink the cursor
-        #     if time.time() % 1 > 0.5:
-        #         pygame.draw.rect(WIN, WHITE, pygame.Rect(
-        #             cursor_position_x, line_spacing , 3, FONT_MAIN.get_height()))
+        if line == current_line:
+            cursor_position_x = correct_text_disp.get_width() \
+                + incorrect_text_disp.get_width() + text_box_position[0]
+            # blink the cursor
+            if time.time() % 1 > 0.5:
+                pygame.draw.rect(WIN, WHITE, pygame.Rect(
+                    cursor_position_x, line_spacing , 3, FONT_MAIN.get_height()))
     
     pygame.display.update()
 
@@ -89,20 +90,26 @@ def get_line_spacing(current_line: int) -> int:
 
 def process_game_list(game_text_lst: list[str], input_text: str) -> list[Any]:
     processed_game_list = []
+    incorrect_text_flag = False
 
     for line in game_text_lst:
         correct_text = ''
         incorrect_text = ''
         remaining_text = ''
         
-        if len(input_text):
+        if incorrect_text_flag:
+            incorrect_text = line[len(correct_text):len(input_text)]
+            input_text = input_text[len(line):]
+        elif len(input_text):
             for i, char in enumerate(input_text[:len(line)]):
                 if char != line[i]:
                     correct_text = input_text[:i]
                     incorrect_text = line[len(correct_text):len(input_text[:len(line)])]
+                    incorrect_text_flag = True
                     break
             else:
                 correct_text = input_text[:len(line)]
+                incorrect_text_flag = False
             input_text = input_text[len(line):]
         remaining_text = line[len(correct_text) + len(incorrect_text):]
         processed_game_list.append((correct_text, incorrect_text, remaining_text))
@@ -153,12 +160,21 @@ def get_wpm(input_text: str, incorrect_text_len: int, current_time: float) -> fl
     wpm = correct_chars / 5 / current_time * 60
     return wpm
 
+def get_current_line(input_len: int, game_text_lst: list[str]) -> int:
+    char_count = 0
+    for i, line in enumerate(game_text_lst):
+        char_count = char_count + len(line)
+        if char_count >= input_len:
+            return i
+
+
 def main() -> None:
     clock = pygame.time.Clock()
 
     input_text = ''
     start_time = 0
     wpm = 0
+    current_line = 0
     game_text = get_game_text()
     game_text_lst = wrap_text(game_text)
 
@@ -168,7 +184,7 @@ def main() -> None:
         
         if start_time > 0:
             current_time = time.time() - start_time
-            #wpm = get_wpm(input_text, incorrect_text_len , current_time)
+            wpm = get_wpm(input_text, incorrect_text_len , current_time)
         else:
             current_time = 0
         
@@ -185,12 +201,12 @@ def main() -> None:
                     if len(input_text) < len(game_text):
                         input_text += event.unicode
 
-
         # game complete check
         if input_text == game_text:
             game_complete(wpm, current_time)
 
-        draw(input_text, game_text, game_text_lst, current_time, wpm)
+        current_line = get_current_line(len(input_text), game_text_lst)
+        draw(input_text, game_text, game_text_lst, current_time, wpm, current_line)
     
     main()
     
