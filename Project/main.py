@@ -12,10 +12,6 @@ WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Type Racer")
 
 # Colours
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0,)
-GREEN = (0, 255, 0)
-RED = (255, 0, 0,)
 INCORRECT_TEXT_RED = (54, 33, 34)
 INCORRECRT_TEXT_BG = (181, 69, 73)
 TEXT_BOX_BG = (41, 38, 38)
@@ -33,19 +29,19 @@ BG_MAIN = pygame.transform.scale(pygame.image.load
 FPS = 60
 
 
-def draw(input_text: str, game_text: str, processed_game_list: list[Tuple[Any]]
-                , current_time: float, wpm: float, current_line: int) -> None:
+def draw(processed_game_list: list[Tuple[Any]], current_time: float, 
+                            wpm: float, current_line: int) -> None:
     
     WIN.blit(BG_MAIN, (0, 0))
     # draw stats rect
     stats_rect = pygame.draw.rect(WIN, TEXT_BOX_BG, (0, 0, WIDTH, FONT_STATS.get_height() + 10), 0)
 
     # draw timer
-    time_text = FONT_STATS.render(f"Time elapsed: {round(current_time, 2)}", True, WHITE)
+    time_text = FONT_STATS.render(f"Time elapsed: {round(current_time, 2)}", True, 'white')
     WIN.blit(time_text, (stats_rect.width/6, stats_rect.centery - FONT_STATS.get_height() / 2))
 
     # draw wpm
-    wpm_text = FONT_STATS.render(f"WPM: {round(wpm)}", True, WHITE)
+    wpm_text = FONT_STATS.render(f"WPM: {round(wpm)}", True, 'white')
     WIN.blit(wpm_text, (stats_rect.width*2/3, stats_rect.centery - FONT_STATS.get_height() / 2))
     
     # draw game text
@@ -54,9 +50,9 @@ def draw(input_text: str, game_text: str, processed_game_list: list[Tuple[Any]]
     WIDTH - 100, HEIGHT / 2 ), 0)
 
     for line, (correct_text, incorrect_text, remaining_text) in enumerate(processed_game_list):
-        line_spacing = get_line_spacing(line) + text_box_position[1]
+        line_spacing = line * (FONT_MAIN.get_height() + 2) + text_box_position[1]
         # display correct text
-        correct_text_disp = FONT_MAIN.render(correct_text, True, GREEN)
+        correct_text_disp = FONT_MAIN.render(correct_text, True, 'green')
         WIN.blit(correct_text_disp, (text_box_position[0], line_spacing))
         # display incorrect text
         incorrect_text_disp = FONT_MAIN.render(
@@ -64,7 +60,7 @@ def draw(input_text: str, game_text: str, processed_game_list: list[Tuple[Any]]
         WIN.blit(incorrect_text_disp,
                  (correct_text_disp.get_width() + text_box_position[0], line_spacing))
         # display remaining text
-        remaining_text_disp = FONT_MAIN.render(remaining_text, True, WHITE)
+        remaining_text_disp = FONT_MAIN.render(remaining_text, True, 'white')
         WIN.blit(remaining_text_disp, (correct_text_disp.get_width() +
                  incorrect_text_disp.get_width() + text_box_position[0], line_spacing))
 
@@ -74,15 +70,10 @@ def draw(input_text: str, game_text: str, processed_game_list: list[Tuple[Any]]
                 + incorrect_text_disp.get_width() + text_box_position[0]
             # blink the cursor
             if time.time() % 1 > 0.5:
-                pygame.draw.rect(WIN, WHITE, pygame.Rect(
+                pygame.draw.rect(WIN, 'white', pygame.Rect(
                     cursor_position_x, line_spacing , 3, FONT_MAIN.get_height()))
     
     pygame.display.update()
-
-
-def get_line_spacing(current_line: int) -> int:
-    # TODO needs improving
-    return current_line * (FONT_MAIN.get_height() + 2)
 
 
 def process_game_list(game_text_lst: list[str], input_text: str) -> list[Tuple[str, str, str]]:
@@ -95,8 +86,7 @@ def process_game_list(game_text_lst: list[str], input_text: str) -> list[Tuple[s
         remaining_text = ''
         
         if incorrect_text_flag:
-            incorrect_text = line[len(correct_text):len(input_text)]
-            input_text = input_text[len(line):]
+            incorrect_text = line[:len(input_text)]
         elif len(input_text):
             for i, char in enumerate(input_text[:len(line)]):
                 if char != line[i]:
@@ -107,7 +97,7 @@ def process_game_list(game_text_lst: list[str], input_text: str) -> list[Tuple[s
             else:
                 correct_text = input_text[:len(line)]
                 incorrect_text_flag = False
-            input_text = input_text[len(line):]
+        input_text = input_text[len(line):]
         remaining_text = line[len(correct_text) + len(incorrect_text):]
         processed_game_list.append((correct_text, incorrect_text, remaining_text))
 
@@ -145,7 +135,7 @@ def get_game_text() -> str:
 def game_complete(wpm: float, current_time: float):
     WIN.blit(BG_MAIN, (0, 0))
     text_rect = pygame.draw.rect(WIN, TEXT_BOX_BG, (0, HEIGHT / 2 , WIDTH, FONT_GAME_COMPLETE.get_height() + 10), 0)
-    text_disp = FONT_GAME_COMPLETE.render(f'Game complete in {round(current_time, 2)} secs with {round(wpm)} wpm', True, WHITE)
+    text_disp = FONT_GAME_COMPLETE.render(f'Game complete in {round(current_time, 2)} secs with {round(wpm)} wpm', True, 'white')
     WIN.blit(text_disp, text_rect)
     pygame.display.update()
     pygame.time.delay(5000)
@@ -202,7 +192,7 @@ def main() -> None:
 
         processed_game_list = process_game_list(game_text_lst, input_text)
         current_line = get_current_line(len(input_text), game_text_lst)
-        draw(input_text, game_text, processed_game_list, current_time, wpm, current_line)
+        draw(processed_game_list, current_time, wpm, current_line)
         
         # game complete check
         if input_text == game_text:
