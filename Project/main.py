@@ -23,34 +23,40 @@ FONT_GAME_COMPLETE = pygame.font.SysFont('arial', 60)
 
 # Assets
 BG_MAIN = pygame.transform.scale(pygame.image.load
-(os.path.join('Project\\assets', 'mechanicalkeyboards_bg.png')), (WIDTH, HEIGHT))
+                                 (os.path.join('Project\\assets', 'mechanicalkeyboards_bg.png')), (WIDTH, HEIGHT))
 
 # Misc
 FPS = 60
 
 
-def draw(processed_game_list: list[Tuple[Any]], current_time: float, 
-                            wpm: float, current_line: int) -> None:
-    
+def draw(processed_game_list: list[Tuple[str, str, str]], current_time: float,
+         wpm: float, current_line: int) -> None:
+
     WIN.blit(BG_MAIN, (0, 0))
     # draw stats rect
-    stats_rect = pygame.draw.rect(WIN, TEXT_BOX_BG, (0, 0, WIDTH, FONT_STATS.get_height() + 10), 0)
+    stats_rect = pygame.draw.rect(
+        WIN, TEXT_BOX_BG, (0, 0, WIDTH, FONT_STATS.get_height() + 10), 0)
 
     # draw timer
-    time_text = FONT_STATS.render(f"Time elapsed: {round(current_time, 2)}", True, 'white')
-    WIN.blit(time_text, (stats_rect.width/6, stats_rect.centery - FONT_STATS.get_height() / 2))
+    time_text = FONT_STATS.render(
+        f"Time elapsed: {round(current_time, 2)}", True, 'white')
+    WIN.blit(time_text, (stats_rect.width/6,
+             stats_rect.centery - FONT_STATS.get_height() / 2))
 
     # draw wpm
     wpm_text = FONT_STATS.render(f"WPM: {round(wpm)}", True, 'white')
-    WIN.blit(wpm_text, (stats_rect.width*2/3, stats_rect.centery - FONT_STATS.get_height() / 2))
-    
-    # draw game text
-    text_box_position = (50, 200)
-    pygame.draw.rect(WIN, TEXT_BOX_BG, (text_box_position[0], text_box_position[1], 
-    WIDTH - 100, HEIGHT / 2 ), 0)
+    WIN.blit(wpm_text, (stats_rect.width*2/3,
+             stats_rect.centery - FONT_STATS.get_height() / 2))
 
+    # draw game text BG
+    text_box_position = (50, 200)
+    pygame.draw.rect(WIN, TEXT_BOX_BG, (text_box_position[0], text_box_position[1],
+                                        WIDTH - 100, HEIGHT // 2), 0)
+
+    # draw game text
     for line, (correct_text, incorrect_text, remaining_text) in enumerate(processed_game_list):
-        line_spacing = line * (FONT_MAIN.get_height() + 2) + text_box_position[1]
+        line_spacing = line * (FONT_MAIN.get_height() +
+                               2) + text_box_position[1]
         # display correct text
         correct_text_disp = FONT_MAIN.render(correct_text, True, 'green')
         WIN.blit(correct_text_disp, (text_box_position[0], line_spacing))
@@ -71,8 +77,8 @@ def draw(processed_game_list: list[Tuple[Any]], current_time: float,
             # blink the cursor
             if time.time() % 1 > 0.5:
                 pygame.draw.rect(WIN, 'white', pygame.Rect(
-                    cursor_position_x, line_spacing , 3, FONT_MAIN.get_height()))
-    
+                    cursor_position_x, line_spacing, 3, FONT_MAIN.get_height()))
+
     pygame.display.update()
 
 
@@ -84,7 +90,7 @@ def process_game_list(game_text_lst: list[str], input_text: str) -> list[Tuple[s
         correct_text = ''
         incorrect_text = ''
         remaining_text = ''
-        
+
         if incorrect_text_flag:
             incorrect_text = line[:len(input_text)]
         elif len(input_text):
@@ -98,8 +104,9 @@ def process_game_list(game_text_lst: list[str], input_text: str) -> list[Tuple[s
                 correct_text = input_text[:len(line)]
                 incorrect_text_flag = False
         input_text = input_text[len(line):]
-        remaining_text = line[len((correct_text) + len(incorrect_text)):]
-        processed_game_list.append((correct_text, incorrect_text, remaining_text))
+        remaining_text = line[len(correct_text) + len(incorrect_text):]
+        processed_game_list.append(
+            (correct_text, incorrect_text, remaining_text))
 
     return processed_game_list
 
@@ -134,8 +141,10 @@ def get_game_text() -> str:
 
 def game_complete(wpm: float, current_time: float):
     WIN.blit(BG_MAIN, (0, 0))
-    text_rect = pygame.draw.rect(WIN, TEXT_BOX_BG, (0, HEIGHT / 2 , WIDTH, FONT_GAME_COMPLETE.get_height() + 10), 0)
-    text_disp = FONT_GAME_COMPLETE.render(f'Game complete in {round(current_time, 2)} secs with {round(wpm)} wpm', True, 'white')
+    text_rect = pygame.draw.rect(
+        WIN, TEXT_BOX_BG, (0, HEIGHT / 2, WIDTH, FONT_GAME_COMPLETE.get_height() + 10), 0)
+    text_disp = FONT_GAME_COMPLETE.render(
+        f'Game complete in {round(current_time, 2)} secs with {round(wpm)} wpm', True, 'white')
     WIN.blit(text_disp, text_rect)
     pygame.display.update()
     pygame.time.delay(5000)
@@ -164,19 +173,19 @@ def main() -> None:
     start_time = 0.0
     current_time = 0.0
     current_line = 0
-    wpm = 0
+    wpm = 0.0
     game_text = get_game_text()
     game_text_lst = wrap_text(game_text)
-    processed_game_list = []
+    processed_game_list: list[Tuple[str, str, str]] = []
 
     run = True
     while run:
         clock.tick(FPS)
-        
+
         if start_time > 0:
             current_time = time.time() - start_time
-            wpm = get_wpm(processed_game_list , current_time)
-        
+            wpm = get_wpm(processed_game_list, current_time)
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
@@ -193,14 +202,13 @@ def main() -> None:
         processed_game_list = process_game_list(game_text_lst, input_text)
         current_line = get_current_line(len(input_text), game_text_lst)
         draw(processed_game_list, current_time, wpm, current_line)
-        
+
         # game complete check
         if input_text == game_text:
             game_complete(wpm, current_time)
 
-    
     main()
-    
+
 
 if __name__ == '__main__':
     main()
