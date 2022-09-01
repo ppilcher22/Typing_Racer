@@ -33,7 +33,7 @@ BG_MAIN = pygame.transform.scale(pygame.image.load
 FPS = 60
 
 
-def draw(input_text: str, game_text: str, game_text_lst: list[str]
+def draw(input_text: str, game_text: str, processed_game_list: list[Tuple[Any]]
                 , current_time: float, wpm: float, current_line: int) -> None:
     
     WIN.blit(BG_MAIN, (0, 0))
@@ -52,9 +52,6 @@ def draw(input_text: str, game_text: str, game_text_lst: list[str]
     text_box_position = (50, 200)
     pygame.draw.rect(WIN, TEXT_BOX_BG, (text_box_position[0], text_box_position[1], 
     WIDTH - 100, HEIGHT / 2 ), 0)
-
-    processed_game_list = process_game_list(game_text_lst, input_text)
-
 
     for line, (correct_text, incorrect_text, remaining_text) in enumerate(processed_game_list):
         line_spacing = get_line_spacing(line) + text_box_position[1]
@@ -88,7 +85,7 @@ def get_line_spacing(current_line: int) -> int:
     return current_line * (FONT_MAIN.get_height() + 2)
 
 
-def process_game_list(game_text_lst: list[str], input_text: str) -> list[Any]:
+def process_game_list(game_text_lst: list[str], input_text: str) -> list[Tuple[str, str, str]]:
     processed_game_list = []
     incorrect_text_flag = False
 
@@ -155,10 +152,11 @@ def game_complete(wpm: float, current_time: float):
     main()
 
 
-def get_wpm(input_text: str, incorrect_text_len: int, current_time: float) -> float:
-    correct_chars = len(input_text) - incorrect_text_len
+def get_wpm(processed_game_list: list[Tuple], current_time: float) -> float:
+    correct_chars = sum([len(line[0]) for line in processed_game_list])
     wpm = correct_chars / 5 / current_time * 60
     return wpm
+
 
 def get_current_line(input_len: int, game_text_lst: list[str]) -> int:
     char_count = 0
@@ -166,17 +164,20 @@ def get_current_line(input_len: int, game_text_lst: list[str]) -> int:
         char_count = char_count + len(line)
         if char_count >= input_len:
             return i
+    return 0
 
 
 def main() -> None:
     clock = pygame.time.Clock()
 
     input_text = ''
-    start_time = 0
-    wpm = 0
+    start_time = 0.0
+    current_time = 0.0
     current_line = 0
+    wpm = 0
     game_text = get_game_text()
     game_text_lst = wrap_text(game_text)
+    processed_game_list = []
 
     run = True
     while run:
@@ -184,9 +185,7 @@ def main() -> None:
         
         if start_time > 0:
             current_time = time.time() - start_time
-            wpm = get_wpm(input_text, incorrect_text_len , current_time)
-        else:
-            current_time = 0
+            wpm = get_wpm(processed_game_list , current_time)
         
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -201,12 +200,14 @@ def main() -> None:
                     if len(input_text) < len(game_text):
                         input_text += event.unicode
 
+        processed_game_list = process_game_list(game_text_lst, input_text)
+        current_line = get_current_line(len(input_text), game_text_lst)
+        draw(input_text, game_text, processed_game_list, current_time, wpm, current_line)
+        
         # game complete check
         if input_text == game_text:
             game_complete(wpm, current_time)
 
-        current_line = get_current_line(len(input_text), game_text_lst)
-        draw(input_text, game_text, game_text_lst, current_time, wpm, current_line)
     
     main()
     
