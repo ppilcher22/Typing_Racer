@@ -91,14 +91,14 @@ def process_game_list(game_text_lst: list[str], input_text: str) -> list[Tuple[s
             for i, char in enumerate(input_text[:len(line)]):
                 if char != line[i]:
                     correct_text = input_text[:i]
-                    incorrect_text = line[len(correct_text):len(input_text[:len(line)])]
+                    incorrect_text = line[len(correct_text):len(input_text)]
                     incorrect_text_flag = True
                     break
             else:
                 correct_text = input_text[:len(line)]
                 incorrect_text_flag = False
         input_text = input_text[len(line):]
-        remaining_text = line[len(correct_text) + len(incorrect_text):]
+        remaining_text = line[len((correct_text) + len(incorrect_text)):]
         processed_game_list.append((correct_text, incorrect_text, remaining_text))
 
     return processed_game_list
